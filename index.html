@@ -1,0 +1,647 @@
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Storia Interattiva COPE-NVI</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f0f8ff; }
+        .question { margin-bottom: 30px; }
+        .scenario { font-style: italic; margin-bottom: 10px; }
+        .options button { display: block; margin: 5px 0; padding: 10px; width: 100%; }
+        #result { margin-top: 40px; }
+        #pdfButton { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Storia Interattiva COPE-NVI</h1>
+    <div id="intro">
+        <label for="username">Inserisci il tuo nome:</label>
+        <input type="text" id="username">
+        <button onclick="startStory()">Inizia</button>
+    </div>
+    <div id="story" style="display:none;"></div>
+    <div id="result"></div>
+    <button id="pdfButton" style="display:none;" onclick="downloadPDF()">Scarica PDF</button>
+
+    <script>
+        const questions = {};
+
+        questions[1] = {
+            scenario: "Un cliente segnala un malfunzionamento nella piscina installata la settimana scorsa. Come ti comporti?",
+            domanda: "Cerco di utilizzare questa esperienza per crescere come persona",
+            stile: "Attitudine positiva",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[2] = {
+            scenario: "Un cliente ti contatta per richiedere una modifica urgente al sistema di illuminazione della piscina appena installata.",
+            domanda: "Mi dedico al lavoro per non pensare a ciò che mi preoccupa",
+            stile: "Strategie di evitamento",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[3] = {
+            scenario: "Durante una visita di controllo, scopri che il rivestimento della piscina presenta delle crepe inattese.",
+            domanda: "Mi preoccupo e do sfogo alle mie emozioni.",
+            stile: "Sostegno sociale",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[4] = {
+            scenario: "Il tuo collega ha avuto un problema simile con un cliente e potresti chiedergli come ha gestito la situazione.",
+            domanda: "Cerco di farmi consigliare da qualcuno sul da farsi. ",
+            stile: "Sostegno sociale",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[5] = {
+            scenario: "Un cliente ti chiede di installare una piscina in un terreno con pendenze particolari. Come affronti la sfida?",
+            domanda: "Mi impegno al massimo per agire sulla situazione. ",
+            stile: "Orientamento al problema",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[6] = {
+            scenario: "Ricevi una chiamata da un cliente che riferisce un problema con il sistema di filtraggio della piscina. Come reagisci?",
+            domanda: "Dico a me stesso/a che sto vivendo qualcosa di irreale.",
+            stile: "Strategie di evitamento",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[7] = {
+            scenario: "Durante una riunione, ricevi una richiesta per un progetto di piscina con caratteristiche non standard.",
+            domanda: "Ripongo la mia speranza in Dio.",
+            stile: "Orientamento trascendente",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[8] = {
+            scenario: "Un cliente ti scrive lamentando un guasto nell'impianto idraulico della piscina. Qual è la tua reazione?",
+            domanda: "Rido della situazione.",
+            stile: "Orientamento trascendente",
+            inversione: "sì (r)",
+            punteggi: [4, 3, 2, 1],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[9] = {
+            scenario: "Un cliente ti propone di integrare un sistema di riscaldamento geotermico nella piscina. Come reagisci?",
+            domanda: "Riconosco che non posso farci niente e abbandono ogni tentativo di agire. ",
+            stile: "Strategie di evitamento",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[10] = {
+            scenario: "Durante una pausa, ricevi una segnalazione di un difetto tecnico nella piscina appena consegnata. Come rispondi?",
+            domanda: "Mi trattengo dall’agire troppo in fretta.",
+            stile: "Attitudine positiva",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[11] = {
+            scenario: "Durante il collaudo finale, il sistema di filtraggio mostra un comportamento anomalo. Come ti comporti?",
+            domanda: "Parlo dei miei sentimenti con qualcuno",
+            stile: "Sostegno sociale",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[12] = {
+            scenario: "Un cliente ti chiede di progettare una piscina con bordo a sfioro in uno spazio molto limitato.",
+            domanda: "Faccio uso di alcool o droghe o farmaci per sentirmi meglio.",
+            stile: "Strategie di evitamento",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[13] = {
+            scenario: "Un cliente manifesta insoddisfazione per il funzionamento del riscaldamento della piscina. Come affronti la situazione?",
+            domanda: "Cerco di abituarmi all’idea che ciò è successo.",
+            stile: "Attitudine positiva",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[14] = {
+            scenario: "Ti arriva una mail urgente da un cliente che ha riscontrato un problema con il rivestimento interno della piscina. Come ti comporti?",
+            domanda: "Parlo con qualcuno per capire di più sulla situazione.",
+            stile: "Sostegno sociale",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[15] = {
+            scenario: "Un cliente ti contatta per un malfunzionamento del sistema di illuminazione subacquea. Come reagisci?",
+            domanda: "Non mi faccio distrarre da altri pensieri o attività.",
+            stile: "Orientamento al problema",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[16] = {
+            scenario: "Durante una lunga riunione, ti distrai immaginando di essere in vacanza in una delle piscine che hai progettato.",
+            domanda: "Tendo a fantasticare per distrarmi.",
+            stile: "Strategie di evitamento",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[17] = {
+            scenario: "Durante una riunione, ricevi una telefonata da un cliente che lamenta perdite d'acqua nella piscina. Come gestisci la situazione?",
+            domanda: "Mi rendo conto di preoccuparmi molto.",
+            stile: "Sostegno sociale",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[18] = {
+            scenario: "Durante l'installazione, scopri che il terreno è più instabile del previsto. Come gestisci la situazione?",
+            domanda: "Cerco aiuto in Dio.",
+            stile: "Orientamento trascendente",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[19] = {
+            scenario: "Un cliente ti chiede di aggiungere un sistema di controllo vocale alla piscina. Come rispondi?",
+            domanda: "Preparo un piano d’azione.",
+            stile: "Orientamento al problema",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[20] = {
+            scenario: "Durante una riunione stressante, qualcuno fa una battuta sulla piscina che perde e tu cerchi di sdrammatizzare.",
+            domanda: "Ci scherzo sopra.",
+            stile: "Orientamento trascendente",
+            inversione: "sì (r)",
+            punteggi: [4, 3, 2, 1],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[21] = {
+            scenario: "Un cliente ti invia un messaggio segnalando un problema con la pompa della piscina. Come rispondi?",
+            domanda: "Accetto che ciò sia accaduto e che non possa essere cambiato.",
+            stile: "Attitudine positiva",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[22] = {
+            scenario: "Ti viene comunicato che una piscina appena installata presenta anomalie nel sistema di controllo. Come ti comporti?",
+            domanda: "Mi trattengo dal fare qualsiasi cosa fino a che la situazione lo permetta.",
+            stile: "Attitudine positiva",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[23] = {
+            scenario: "Un cliente ti chiama per segnalare che la piscina non mantiene la temperatura desiderata. Come reagisci?",
+            domanda: "Cerco sostegno morale dagli amici e dai parenti.",
+            stile: "Sostegno sociale",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[24] = {
+            scenario: "Durante una fiera, ricevi una proposta per collaborare a un progetto innovativo di piscine ecologiche.",
+            domanda: "Semplicemente rinuncio a raggiungere i miei obiettivi.",
+            stile: "Strategie di evitamento",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[25] = {
+            scenario: "Ricevi una segnalazione di un problema con il sistema di dosaggio del cloro nella piscina. Come affronti la situazione?",
+            domanda: "Mi sforzo più del solito per tentare di liberarmi dal problema.",
+            stile: "Orientamento al problema",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[26] = {
+            scenario: "Un cliente lamenta che la piscina non si integra esteticamente con il giardino. Come affronti la richiesta?",
+            domanda: "Cerco di distrarmi per un momento bevendo alcool o prendendo droghe o farmaci.",
+            stile: "Strategie di evitamento",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[27] = {
+            scenario: "Un cliente lamenta un  difetto nel lavoro eseguito. Come ti comporti?",
+            domanda: "Mi rifiuto di credere che ciò sia accaduto.",
+            stile: "Strategie di evitamento",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[28] = {
+            scenario: "Durante una visita post-installazione, il cliente richiede modifiche al sistema di disinfezione.",
+            domanda: "Do libero sfogo ai miei sentimenti.",
+            stile: "Sostegno sociale",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[29] = {
+            scenario: "Durante l'orario di lavoro, ricevi una chiamata per un guasto al prodotto acquistato. Come reagisci?",
+            domanda: "Cerco di vedere le cose in una luce diversa, per farle sembrare più positive.",
+            stile: "Attitudine positiva",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[30] = {
+            scenario: "Un cliente ti contatta per un problema con il pannello di controllo della piscina. Come gestisci la situazione?",
+            domanda: "Parlo con qualcuno per fare qualcosa di concreto per risolvere il problema.",
+            stile: "Sostegno sociale",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[31] = {
+            scenario: "Ti viene segnalato un malfunzionamento nel sistema di copertura automatica della piscina. Come reagisci?",
+            domanda: "Dormo più del solito.",
+            stile: "Strategie di evitamento",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[32] = {
+            scenario: "Un cliente ti chiede di progettare una piscina con funzione idromassaggio integrata. Come procedi?",
+            domanda: "Cerco di escogitare una strategia sul da farsi.",
+            stile: "Orientamento al problema",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[33] = {
+            scenario: "Un cliente riferisce che la piscina presenta un odore sgradevole. Come affronti la situazione?",
+            domanda: "Mi concentro nel trattare questo problema, e se necessario metto da parte le altre cose.",
+            stile: "Orientamento al problema",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[34] = {
+            scenario: "Ricevi una lamentela per la scarsa qualità dell'acqua nella piscina appena installata. Come ti comporti?",
+            domanda: "Cerco la comprensione e la solidarietà di qualcuno.",
+            stile: "Sostegno sociale",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[35] = {
+            scenario: "Durante una riunione tecnica, emerge un problema di compatibilità tra componenti del sistema di filtraggio.",
+            domanda: "Bevo alcool o prendo droghe o farmaci per pensarci di meno.",
+            stile: "Strategie di evitamento",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[36] = {
+            scenario: "Un cliente ti chiama per segnalare che la piscina non si riempie correttamente. Come reagisci?",
+            domanda: "Mi prendo gioco di quello che è successo.",
+            stile: "Orientamento trascendente",
+            inversione: "sì (r)",
+            punteggi: [4, 3, 2, 1],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[37] = {
+            scenario: "Durante una verifica, scopri che un cliente ha segnalato un problema con il timer della piscina. Come ti comporti?",
+            domanda: "Rinuncio a ogni tentativo di ottenere ciò che voglio.",
+            stile: "Strategie di evitamento",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[38] = {
+            scenario: "Un cliente ti scrive lamentando un problema con il sistema di sicurezza della piscina. Come reagisci?",
+            domanda: "Cerco qualcosa di positivo in ciò che sta accadendo.",
+            stile: "Attitudine positiva",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[39] = {
+            scenario: "Ti arriva una segnalazione di un guasto nel sistema di aspirazione della piscina. Come affronti la situazione?",
+            domanda: "Penso a come potrei gestire al meglio il problema.",
+            stile: "Orientamento al problema",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[40] = {
+            scenario: "Un cliente ti contatta per un problema con la valvola di scarico della piscina. Come reagisci?",
+            domanda: "Faccio finta che non sia veramente accaduto.",
+            stile: "Strategie di evitamento",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[41] = {
+            scenario: "Durante il lavoro, ricevi una chiamata per un difetto nel sistema di controllo remoto della piscina. Come ti comporti?",
+            domanda: "Mi accerto di non peggiorare le cose agendo troppo presto.",
+            stile: "Attitudine positiva",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[42] = {
+            scenario: "Un cliente lamenta che la piscina non si svuota correttamente. Come affronti la situazione?",
+            domanda: "Cerco strenuamente di impedire che le altre cose interferiscano coi miei sforzi di fronteggiare il problema.",
+            stile: "Orientamento al problema",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[43] = {
+            scenario: "Ti viene segnalato un problema con il sistema di rilevamento del livello dell'acqua. Come reagisci?",
+            domanda: "Vado al cinema o guardo la televisione per pensarci di meno.",
+            stile: "Strategie di evitamento",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[44] = {
+            scenario: "Un cliente ti chiama per un malfunzionamento nel sistema di risalita dell'acqua. Come ti comporti?",
+            domanda: "Accetto la realtà dei fatti.",
+            stile: "Attitudine positiva",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[45] = {
+            scenario: "Ricevi una segnalazione di un guasto nel sistema di ventilazione della piscina. Come reagisci?",
+            domanda: "Chiedo alle persone come hanno agito di fronte ad esperienze simili.",
+            stile: "Sostegno sociale",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[46] = {
+            scenario: "Un cliente ti propone di installare una piscina in una zona soggetta a vincoli paesaggistici. Come reagisci?",
+            domanda: "Mi sento molto stressato/a e lascio andare i miei sentimenti.",
+            stile: "Sostegno sociale",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[47] = {
+            scenario: "Un cliente riferisce che la piscina presenta una colorazione anomala dell'acqua. Come affronti la situazione?",
+            domanda: "Agisco senza indugio per sbarazzarmi del problema.",
+            stile: "Orientamento al problema",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[48] = {
+            scenario: "Durante un controllo, scopri che il sistema di controllo remoto non risponde correttamente.",
+            domanda: "Tento di trovare conforto nella mia religione.",
+            stile: "Orientamento trascendente",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[49] = {
+            scenario: "Durante una pausa, ricevi una chiamata per un problema con il sistema di controllo della pressione. Come ti comporti?",
+            domanda: "Mi sforzo di aspettare il momento giusto per fare qualcosa.",
+            stile: "Attitudine positiva",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[50] = {
+            scenario: "Un cliente ti scrive lamentando un guasto nel sistema di riscaldamento solare della piscina. Come reagisci?",
+            domanda: "Tento di ridicolizzare la situazione.",
+            stile: "Orientamento trascendente",
+            inversione: "sì (r)",
+            punteggi: [4, 3, 2, 1],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[51] = {
+            scenario: "Un cliente ti chiede di progettare una piscina con accesso facilitato per persone con disabilità.",
+            domanda: "Non mi impegno più di tanto per risolvere il problema.",
+            stile: "Strategie di evitamento",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[52] = {
+            scenario: "Ti arriva una segnalazione di un difetto nel sistema di filtraggio a sabbia. Come affronti la situazione?",
+            domanda: "Parlo con qualcuno di come mi sento.",
+            stile: "Sostegno sociale",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[53] = {
+            scenario: "Durante l'installazione, il cliente richiede una modifica dell'orientamento della piscina per motivi estetici.",
+            domanda: "Faccio uso di alcool o droghe o farmaci per aiutarmi ad uscirne.",
+            stile: "Strategie di evitamento",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[54] = {
+            scenario: "Il progetto della piscina ha subito modifiche non richieste dal cliente, ma ormai è troppo tardi per cambiarlo.",
+            domanda: "Imparo a convivere con il problema.",
+            stile: "Attitudine positiva",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[55] = {
+            scenario: "Un cliente ti contatta per un problema con il sistema di controllo del pH. Come reagisci?",
+            domanda: "Metto da parte le altre attività per concentrarmi sulla situazione.",
+            stile: "Orientamento al problema",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[56] = {
+            scenario: "Durante una riunione, ricevi una telefonata per un malfunzionamento nel sistema di disinfezione. Come ti comporti?",
+            domanda: "Rifletto intensamente su quali mosse fare.",
+            stile: "Orientamento al problema",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[57] = {
+            scenario: "Un cliente lamenta che la piscina presenta bolle d'aria anomale. Come affronti la situazione?",
+            domanda: "Mi comporto come se non fosse mai accaduto.",
+            stile: "Strategie di evitamento",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[58] = {
+            scenario: "Ti viene comunicato un guasto nel sistema di controllo della portata dell'acqua. Come reagisci?",
+            domanda: "Faccio quello che deve essere fatto, un passo alla volta.",
+            stile: "Orientamento al problema",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[59] = {
+            scenario: "Un cliente ti chiama per segnalare che la piscina non si avvia correttamente. Come ti comporti?",
+            domanda: "Tento di imparare qualcosa dall’esperienza.",
+            stile: "Attitudine positiva",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        questions[60] = {
+            scenario: "Ricevi una segnalazione di un problema con il sistema di controllo della temperatura. Come reagisci?",
+            domanda: "Prego più del solito.",
+            stile: "Orientamento trascendente",
+            inversione: "no",
+            punteggi: [1, 2, 3, 4],
+            opzioni: ['Di solito non lo faccio', 'Lo faccio qualche volta', 'Lo faccio con una certa frequenza', 'Lo faccio quasi sempre']
+        };
+    
+        let currentQuestion = 1;
+        let scores = {};
+        let username = "";
+
+        function startStory() {
+            username = document.getElementById("username").value;
+            if (!username) {
+                alert("Inserisci il tuo nome per iniziare.");
+                return;
+            }
+            document.getElementById("intro").style.display = "none";
+            document.getElementById("story").style.display = "block";
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const q = questions[currentQuestion];
+            if (!q) {
+                showResult();
+                return;
+            }
+            const container = document.getElementById("story");
+            container.innerHTML = `
+                <div class='question'>
+                    <div class='scenario'>${q.scenario}</div>
+                    <div><strong>${q.domanda}</strong></div>
+                    <div class='options'>
+                        ${q.opzioni.map((opt, i) => `<button onclick='selectOption(${i})'>${opt}</button>`).join("")}
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectOption(index) {
+            const q = questions[currentQuestion];
+            let score = q.punteggi[index];
+            if (q.inversione.includes("sì")) {
+                score = 5 - score;
+            }
+            if (!scores[q.stile]) scores[q.stile] = 0;
+            scores[q.stile] += score;
+            currentQuestion++;
+            showQuestion();
+        }
+
+        function showResult() {
+            document.getElementById("story").style.display = "none";
+            let resultHTML = `<h2>Risultato per ${username}</h2><ul>`;
+            let maxScore = 0;
+            let bestStyle = "";
+            for (const stile in scores) {
+                resultHTML += `<li><strong>${stile}:</strong> ${scores[stile]}</li>`;
+                if (scores[stile] > maxScore) {
+                    maxScore = scores[stile];
+                    bestStyle = stile;
+                }
+            }
+            resultHTML += `</ul><p>Stile di coping prevalente: <strong>${bestStyle}</strong></p>`;
+            document.getElementById("result").innerHTML = resultHTML;
+            document.getElementById("pdfButton").style.display = "block";
+        }
+
+        function downloadPDF() {
+            const date = new Date().toLocaleDateString();
+            let content = `Risultato COPE-NVI\nNome: ${username}\nData: ${date}\n\n`;
+            for (const stile in scores) {
+                content += `${stile}: ${scores[stile]}\n`;
+            }
+            content += `\nStile prevalente: ${Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b)}`;
+            const blob = new Blob([content], { type: "application/pdf" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `Risultato_COPE-NVI_${username}.pdf`;
+            link.click();
+        }
+    </script>
+</body>
+</html>
